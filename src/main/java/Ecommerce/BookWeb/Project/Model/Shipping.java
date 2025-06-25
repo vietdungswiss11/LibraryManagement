@@ -53,13 +53,4 @@ public class Shipping {
     
     @Column(name = "address_line", nullable = false, columnDefinition = "TEXT")
     private String addressLine;
-    
-    @Column(name = "city")
-    private String city;
-    
-    @Column(name = "district")
-    private String district;
-    
-    @Column(name = "ward")
-    private String ward;
 }

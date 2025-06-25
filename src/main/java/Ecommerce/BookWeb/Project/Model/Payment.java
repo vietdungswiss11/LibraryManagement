@@ -15,7 +15,7 @@ public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    
+
     @OneToMany(mappedBy = "payment")
     private List<Order> orders;
     
@@ -33,14 +33,5 @@ public class Payment {
     
     @Column(name = "payment_date")
     private LocalDateTime paymentDate;
-    
-    // Additional payment details can be added here
-    @Column(name = "card_last_four")
-    private String cardLastFour;
-    
-    @Column(name = "payment_gateway")
-    private String paymentGateway; // e.g., STRIPE, PAYPAL, VNPAY
-    
-    @Column(name = "notes", columnDefinition = "TEXT")
-    private String notes;
+
 }
