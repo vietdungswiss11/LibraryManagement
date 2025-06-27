@@ -50,7 +50,7 @@ public class CartController {
         return userRepository.findById(userId)
                 .map(user -> cartRepository.findByUser(user)
                         .map(cart -> {
-                            cart.getItems().clear();
+                            cart.getCartItems().clear();
                             cartRepository.save(cart);
                             return ResponseEntity.ok().build();
                         })

@@ -1,5 +1,7 @@
 package Ecommerce.BookWeb.Project.Controller.Rest;
 
+import Ecommerce.BookWeb.Project.DTO.CategoryDTO;
+import Ecommerce.BookWeb.Project.DTO.CategoryMapper;
 import Ecommerce.BookWeb.Project.Model.Category;
 import Ecommerce.BookWeb.Project.Repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,44 +9,59 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/categories")
 public class CategoryController {
-    private final CategoryRepository categoryRepository;
 
     @Autowired
-    public CategoryController(CategoryRepository categoryRepository) {
-        this.categoryRepository = categoryRepository;
-    }
+    private CategoryRepository categoryRepository;
 
+    @Autowired
+    private CategoryMapper categoryMapper;
+
+    // Lấy tất cả danh mục
     @GetMapping
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+    public List<CategoryDTO> getAllCategories() {
+        return categoryRepository.findAll().stream()
+                .map(categoryMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
+    // Lấy danh mục theo ID
     @GetMapping("/{id}")
-    public ResponseEntity<Category> getCategoryById(@PathVariable int id) {
+    public ResponseEntity<CategoryDTO> getCategoryById(@PathVariable int id) {
         return categoryRepository.findById(id)
+                .map(categoryMapper::toDTO)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // Tạo mới danh mục
     @PostMapping
-    public Category createCategory(@RequestBody Category category) {
-        return categoryRepository.save(category);
+    public CategoryDTO createCategory(@RequestBody CategoryDTO categoryDTO) {
+        Category category = categoryMapper.toEntity(categoryDTO);
+        Category savedCategory = categoryRepository.save(category);
+        return categoryMapper.toDTO(savedCategory);
     }
 
+    // Cập nhật danh mục
     @PutMapping("/{id}")
-    public ResponseEntity<Category> updateCategory(@PathVariable int id, @RequestBody Category categoryDetails) {
+    public ResponseEntity<CategoryDTO> updateCategory(
+            @PathVariable int id,
+            @RequestBody CategoryDTO categoryDTO) {
+
         return categoryRepository.findById(id)
-                .map(category -> {
-                    category.setName(categoryDetails.getName());
-                    return ResponseEntity.ok(categoryRepository.save(category));
+                .map(existingCategory -> {
+                    existingCategory.setName(categoryDTO.getName());
+                    Category updatedCategory = categoryRepository.save(existingCategory);
+                    return ResponseEntity.ok(categoryMapper.toDTO(updatedCategory));
                 })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.notFound().build());
     }
 
+    // Xóa danh mục
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteCategory(@PathVariable int id) {
         return categoryRepository.findById(id)
@@ -52,6 +69,8 @@ public class CategoryController {
                     categoryRepository.delete(category);
                     return ResponseEntity.ok().build();
                 })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.notFound().build());
     }
+
+
 }
