@@ -37,7 +37,7 @@ public class CategoryMapper {
         bookDTO.setId(book.getId());
         bookDTO.setTitle(book.getTitle());
         bookDTO.setAuthor(book.getAuthor());
-        bookDTO.setPrice(book.getPrice());
+        bookDTO.setDiscountPrice(book.getDiscountPrice());
 
         if (book.getImages() != null && !book.getImages().isEmpty()) {
             bookDTO.setImageUrl(book.getImages().get(0).getUrl());

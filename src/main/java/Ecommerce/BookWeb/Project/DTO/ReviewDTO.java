@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 public class ReviewDTO {
     private int id;
     private String content;
-    private int rating;
+    private double rating;
     private LocalDateTime createdAt;
     private UserDTO user;
     

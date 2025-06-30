@@ -29,7 +29,7 @@ public class Review {
     @Min(1)
     @Max(5)
     @Column(name = "rating", nullable = false)
-    private int rating;
+    private double rating;
     
     @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private java.time.LocalDateTime createdAt;

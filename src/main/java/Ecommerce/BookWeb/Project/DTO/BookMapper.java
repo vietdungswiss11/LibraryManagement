@@ -1,9 +1,6 @@
 package Ecommerce.BookWeb.Project.DTO;
 
-import Ecommerce.BookWeb.Project.Model.Book;
-import Ecommerce.BookWeb.Project.Model.Category;
-import Ecommerce.BookWeb.Project.Model.Review;
-import Ecommerce.BookWeb.Project.Model.User;
+import Ecommerce.BookWeb.Project.Model.*;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
@@ -22,10 +19,12 @@ public class BookMapper {
         dto.setDescription(book.getDescription());
         dto.setAuthor(book.getAuthor());
         dto.setIsbn(book.getIsbn());
-        dto.setPrice(book.getPrice());
-        dto.setStockQuantity(book.getStockQuantity());
+        dto.setOriginalPrice(book.getOriginalPrice());
+        dto.setDiscountPercent(book.getDiscountPercent());
+        dto.setDiscountPrice(book.getDiscountPrice()); //lấy hàm
+        dto.setSold(book.getSold());
         dto.setPublicationDate(book.getPublicationDate());
-        dto.setImages(book.getImages());
+
         
         // Chuyển đổi reviews nếu có
         if (book.getReviews() != null) {
@@ -35,7 +34,7 @@ public class BookMapper {
             
             // Tính điểm đánh giá trung bình
             double avgRating = book.getReviews().stream()
-                    .mapToInt(Review::getRating)
+                    .mapToDouble(Review::getRating)
                     .average()
                     .orElse(0.0);
             dto.setAverageRating(Math.round(avgRating * 10.0) / 10.0); // Làm tròn 1 chữ số thập phân
@@ -48,7 +47,14 @@ public class BookMapper {
                     .map(this::toCategoryDTO)
                     .collect(Collectors.toList()));
         }
-        
+
+
+        //chuyển đổi images nếu có
+        if(book.getImages() != null){
+            dto.setImages(book.getImages().stream()
+                    .map(this::toImageDTO)
+                    .collect(Collectors.toList()));
+        }
         return dto;
     }
     
@@ -94,6 +100,19 @@ public class BookMapper {
         dto.setId(category.getId());
         dto.setName(category.getName());
         
+        return dto;
+    }
+
+    private ImageDTO toImageDTO(Image image) {
+        if (image == null) {
+            return null;
+        }
+
+        ImageDTO dto = new ImageDTO();
+        dto.setId(image.getId());
+        dto.setName(image.getName());
+        dto.setUrl(image.getUrl());
+
         return dto;
     }
 }

@@ -13,13 +13,22 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.List;
 
 @Repository
-public interface BookRepository extends JpaRepository<Book, Integer>, JpaSpecificationExecutor<Book> {
+public interface BookRepository extends JpaRepository<Book, Integer> {
     // Các phương thức hiện có
-    List<Book> findByTitleContainingIgnoreCase(String title);
-    List<Book> findByAuthorContainingIgnoreCase(String author);
-    List<Book> findByIsbn(String isbn);
-    Page<Book> findByCategories_Id(Integer categoryId, Pageable pageable);
     boolean existsByIsbn(String isbn);
+    List<Book> findByIsbn(String isbn);
+    
+    // Tìm sách đang giảm giá (discountPercent > 0) có phân trang
+    Page<Book> findByDiscountPercentGreaterThan(double discountPercent, Pageable pageable);
+    
+    // Tìm sách theo tác giả có phân trang
+    Page<Book> findByAuthorContainingIgnoreCase(String author, Pageable pageable);
+
+    // Tìm sách theo tiêu đề có phân trang
+    Page<Book> findByTitleContainingIgnoreCase(String title, Pageable pageable);
+
+    Page<Book> findByCategories_Id(Integer categoryId, Pageable pageable);
+
 
     // Thêm các phương thức mới
 
@@ -33,13 +42,9 @@ public interface BookRepository extends JpaRepository<Book, Integer>, JpaSpecifi
     Page<Book> searchBooks(@Param("keyword") String keyword, Pageable pageable);
 
     // Tìm sách theo khoảng giá
-    Page<Book> findByPriceBetween(Double minPrice, Double maxPrice, Pageable pageable);
-
-    // Tìm sách có giá nhỏ hơn hoặc bằng
-    Page<Book> findByPriceLessThanEqual(Double maxPrice, Pageable pageable);
-
-    // Tìm sách có giá lớn hơn hoặc bằng
-    Page<Book> findByPriceGreaterThanEqual(Double minPrice, Pageable pageable);
+    
+    @Query("SELECT b FROM Book b WHERE b.discountPrice >= :minPrice AND b.discountPrice <= :maxPrice")
+    Page<Book> findByDiscountPriceBetween(@Param("minPrice") Double minPrice, @Param("maxPrice") Double maxPrice, Pageable pageable);
 
     // Tìm sách có đánh giá trung bình >= minRating
     @Query("SELECT b FROM Book b LEFT JOIN b.reviews r " +
@@ -60,35 +65,16 @@ public interface BookRepository extends JpaRepository<Book, Integer>, JpaSpecifi
             Pageable pageable
     );
 
-    // Tìm sách kết hợp nhiều danh mục
-    @Query("SELECT DISTINCT b FROM Book b " +
-            "JOIN b.categories c " +
-            "WHERE c.id IN :categoryIds " +
-            "GROUP BY b " +
-            "HAVING COUNT(DISTINCT c.id) = :categoryCount")
-    Page<Book> findByCategoryIds(
-            @Param("categoryIds") List<Integer> categoryIds,
-            @Param("categoryCount") long categoryCount,
-            Pageable pageable
-    );
+    // 1. Lấy sách theo multiple categories (OR logic - sách thuộc ít nhất 1 category)
+    @Query("SELECT DISTINCT b FROM Book b JOIN b.categories c WHERE c.id IN :categoryIds")
+    List<Book> findByCategoryIdsAsList(@Param("categoryIds") List<Integer> categoryIds);
 
-    // Tìm sách theo tác giả có phân trang
-    Page<Book> findByAuthorContainingIgnoreCase(String author, Pageable pageable);
+    // 2. OPTIONAL: Lấy sách có TẤT CẢ categories được chỉ định (AND logic)
+    @Query("SELECT b FROM Book b WHERE b.id IN " +
+            "(SELECT b2.id FROM Book b2 JOIN b2.categories cat " +
+            "WHERE cat.id IN :categoryIds " +
+            "GROUP BY b2.id HAVING COUNT(DISTINCT cat.id) = :categoryCount)")
+    List<Book> findBooksWithAllCategories(@Param("categoryIds") List<Integer> categoryIds,
+                                        @Param("categoryCount") Long categoryCount);
 
-    // Tìm sách theo tiêu đề có phân trang
-    Page<Book> findByTitleContainingIgnoreCase(String title, Pageable pageable);
-
-    // Tìm sách theo nhiều điều kiện
-    @Query("SELECT b FROM Book b " +
-            "WHERE (:title IS NULL OR LOWER(b.title) LIKE LOWER(CONCAT('%', :title, '%'))) " +
-            "AND (:author IS NULL OR LOWER(b.author) LIKE LOWER(CONCAT('%', :author, '%'))) " +
-            "AND (:minPrice IS NULL OR b.price >= :minPrice) " +
-            "AND (:maxPrice IS NULL OR b.price <= :maxPrice)")
-    Page<Book> findByMultipleConditions(
-            @Param("title") String title,
-            @Param("author") String author,
-            @Param("minPrice") Double minPrice,
-            @Param("maxPrice") Double maxPrice,
-            Pageable pageable
-    );
 }

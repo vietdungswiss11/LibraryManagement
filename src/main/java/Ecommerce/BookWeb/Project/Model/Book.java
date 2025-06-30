@@ -27,12 +27,18 @@ public class Book {
     
     @Column(name = "isbn", unique = true)
     private String isbn;
+
+    @Column(name = "original_price", nullable = false)
+    private double originalPrice;
+
+    @Column(name = "discount_percent")
+    private double discountPercent; // Lưu dạng số thập phân, ví dụ: 0.2 cho 20%
+
+    @Column(name= "discount_price")
+    private double discountPrice;
     
-    @Column(name = "price", nullable = false)
-    private Long price;
-    
-    @Column(name = "stock_quantity", nullable = false)
-    private int stockQuantity;
+    @Column(name = "sold", nullable = false)
+    private int sold;
     
     @Column(name = "publication_date")
     private LocalDate publicationDate;
@@ -62,4 +68,14 @@ public class Book {
         inverseJoinColumns = @JoinColumn(name = "category_id")
     )
     private List<Category> categories;
+
+    public double getDiscountPrice(){
+        if(discountPercent > 0){
+            discountPrice =  originalPrice * (1 - discountPercent);
+            return discountPrice;
+        }
+        return originalPrice;
+    }
+
+
 }

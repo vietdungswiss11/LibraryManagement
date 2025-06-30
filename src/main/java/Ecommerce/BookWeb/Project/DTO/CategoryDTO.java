@@ -14,7 +14,7 @@ public class CategoryDTO {
         private int id;
         private String title;
         private String author;
-        private Long price;
+        private double discountPrice;
         private String imageUrl;
     }
 }

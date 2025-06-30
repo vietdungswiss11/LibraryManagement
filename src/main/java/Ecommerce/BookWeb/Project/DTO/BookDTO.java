@@ -15,10 +15,12 @@ public class BookDTO {
     private String description;
     private String author;
     private String isbn;
-    private Long price;
-    private int stockQuantity;
+    private double originalPrice;
+    private double discountPercent;
+    private double discountPrice;
+    private int sold;
     private LocalDate publicationDate;
-    private List<Image> images;
+    private List<ImageDTO> images;
     private List<ReviewDTO> reviews;
     private List<CategoryDTO> categories;
     
