@@ -1,5 +1,7 @@
 package Ecommerce.BookWeb.Project.Controller.Rest;
 
+import Ecommerce.BookWeb.Project.DTO.CartDTO;
+import Ecommerce.BookWeb.Project.DTO.CartMapper;
 import Ecommerce.BookWeb.Project.Model.Cart;
 import Ecommerce.BookWeb.Project.Model.User;
 import Ecommerce.BookWeb.Project.Repository.CartRepository;
@@ -13,12 +15,15 @@ import org.springframework.web.bind.annotation.*;
 public class CartController {
     private final CartRepository cartRepository;
     private final UserRepository userRepository;
+    private final CartMapper cartMapper;
 
     @Autowired
     public CartController(CartRepository cartRepository, 
-                         UserRepository userRepository) {
+                         UserRepository userRepository,
+                         CartMapper cartMapper) {
         this.cartRepository = cartRepository;
         this.userRepository = userRepository;
+        this.cartMapper = cartMapper;
     }
 
     /**
@@ -30,12 +35,13 @@ public class CartController {
     public ResponseEntity<?> getCart(@PathVariable int userId) {
         return userRepository.findById(userId)
                 .map(user -> cartRepository.findByUser(user)
-                        .map(ResponseEntity::ok)
+                        .map(cart -> ResponseEntity.ok(cartMapper.toCartDTO(cart)))
                         .orElseGet(() -> {
                             // Create new cart if not exists
                             Cart newCart = new Cart();
                             newCart.setUser(user);
-                            return ResponseEntity.ok(cartRepository.save(newCart));
+                            Cart savedCart = cartRepository.save(newCart);
+                            return ResponseEntity.ok(cartMapper.toCartDTO(savedCart));
                         }))
                 .orElse(ResponseEntity.notFound().build());
     }

@@ -11,6 +11,7 @@ public class ReviewDTO {
     private double rating;
     private LocalDateTime createdAt;
     private UserDTO user;
+    private BookDTO book;
     
     // Có thể thêm các trường bổ sung nếu cần
     private String formattedDate; // Ví dụ: "2 ngày trước"

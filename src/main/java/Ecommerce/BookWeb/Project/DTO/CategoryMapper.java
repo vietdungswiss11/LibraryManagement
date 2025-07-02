@@ -28,12 +28,12 @@ public class CategoryMapper {
         return dto;
     }
 
-    private CategoryDTO.BookDTO toBookDTO(Book book) {
+    private BookDTO toBookDTO(Book book) {
         if (book == null) {
             return null;
         }
 
-        CategoryDTO.BookDTO bookDTO = new CategoryDTO.BookDTO();
+        BookDTO bookDTO = new BookDTO();
         bookDTO.setId(book.getId());
         bookDTO.setTitle(book.getTitle());
         bookDTO.setAuthor(book.getAuthor());

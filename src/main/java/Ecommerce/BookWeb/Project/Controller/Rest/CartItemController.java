@@ -1,5 +1,8 @@
 package Ecommerce.BookWeb.Project.Controller.Rest;
 
+import Ecommerce.BookWeb.Project.DTO.CartDTO;
+import Ecommerce.BookWeb.Project.DTO.CartItemDTO;
+import Ecommerce.BookWeb.Project.DTO.CartMapper;
 import Ecommerce.BookWeb.Project.Model.*;
 import Ecommerce.BookWeb.Project.Repository.BookRepository;
 import Ecommerce.BookWeb.Project.Repository.CartItemRepository;
@@ -16,23 +19,26 @@ public class CartItemController {
     private final CartRepository cartRepository;
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
+    private final CartMapper cartMapper;
 
     @Autowired
     public CartItemController(CartItemRepository cartItemRepository,
                             CartRepository cartRepository,
                             UserRepository userRepository,
-                            BookRepository bookRepository) {
+                            BookRepository bookRepository,
+                            CartMapper cartMapper) {
         this.cartItemRepository = cartItemRepository;
         this.cartRepository = cartRepository;
         this.userRepository = userRepository;
         this.bookRepository = bookRepository;
+        this.cartMapper = cartMapper;
     }
 
     //add item to cart
     @PostMapping("/{itemId}")
     public ResponseEntity<?> addToCart(
             @PathVariable int userId,
-            @RequestParam int itemId,
+            @PathVariable int itemId,
             @RequestParam(defaultValue = "1") int quantity) {
 
         if (quantity <= 0) {
@@ -40,7 +46,7 @@ public class CartItemController {
         }
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Vui lòng đăng nhập"));
         
         Book book = bookRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Book not found"));
@@ -70,7 +76,7 @@ public class CartItemController {
         // Update cart's updatedAt timestamp
         cartRepository.save(cart);
 
-        return ResponseEntity.ok(item);
+        return ResponseEntity.ok(cartMapper.toCartItemDTO(item));
     }
 
     @PutMapping("{itemId}")
@@ -88,7 +94,7 @@ public class CartItemController {
                     CartItem updatedItem = cartItemRepository.save(item);
                     // Update cart's updatedAt timestamp
                     cartRepository.save(item.getCart());
-                    return ResponseEntity.ok(updatedItem);
+                    return ResponseEntity.ok(cartMapper.toCartItemDTO(updatedItem));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -99,9 +105,9 @@ public class CartItemController {
                 .map(item -> {
                     Cart cart = item.getCart();
                     cartItemRepository.delete(item);
-                    // Update cart's updatedAt timestamp
+                    cartItemRepository.delete(item);
                     cartRepository.save(cart);
-                    return ResponseEntity.ok().build();
+                    return ResponseEntity.ok(cartMapper.toCartDTO(cart));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }

@@ -23,7 +23,8 @@ public class BookDTO {
     private List<ImageDTO> images;
     private List<ReviewDTO> reviews;
     private List<CategoryDTO> categories;
-    
+    private String imageUrl;
+
     // Các trường tính toán hoặc định dạng
     private double averageRating;
     private int totalReviews;
