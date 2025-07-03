@@ -10,5 +10,5 @@ public class AddressDTO {
     private String recipientName;
     private boolean isDefault;
     // Exclude user to prevent circular reference
-    // private UserDTO user; // Don't include this to avoid circular reference
+    private UserDTO userDTO; // Don't include this to avoid circular reference
 }

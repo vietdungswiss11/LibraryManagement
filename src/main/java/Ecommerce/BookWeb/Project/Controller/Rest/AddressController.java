@@ -1,6 +1,7 @@
 package Ecommerce.BookWeb.Project.Controller.Rest;
 
 import Ecommerce.BookWeb.Project.DTO.AddressDTO;
+import Ecommerce.BookWeb.Project.DTO.AddressMapper;
 import Ecommerce.BookWeb.Project.DTO.ApiResponse;
 import Ecommerce.BookWeb.Project.Model.Address;
 import Ecommerce.BookWeb.Project.Model.User;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/addresses")
@@ -19,21 +21,27 @@ public class AddressController {
 
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
+    private AddressMapper addressMapper;
 
     @Autowired
-    public AddressController(AddressRepository addressRepository, UserRepository userRepository) {
+    public AddressController(AddressRepository addressRepository, UserRepository userRepository
+    ,AddressMapper addressMapper) {
         this.addressRepository = addressRepository;
         this.userRepository = userRepository;
+        this.addressMapper = addressMapper;
     }
 
     // Lấy tất cả địa chỉ của một user
     @GetMapping("/user/{userId}")
-    public List<Address> getAddressesByUserId(@PathVariable int userId) {
+    public List<AddressDTO> getAddressesByUserId(@PathVariable int userId) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             return null;
         }
-        return addressRepository.findByUser(user);
+        List<AddressDTO> addDTOs = addressRepository.findByUser(user).stream()
+                .map(address -> addressMapper.toAddressDTO(address))
+                .collect(Collectors.toList());
+        return addDTOs;
     }
 
     // Lấy địa chỉ theo ID
@@ -57,6 +65,7 @@ public class AddressController {
                         // Nếu đặt làm mặc định, bỏ mặc định của các địa chỉ khác
                         user.getAddresses().forEach(addr -> addr.setDefault(false));
                     }
+                    addressRepository.save(address);
                     return ResponseEntity.ok(new ApiResponse(true, "Đã lưu thành công!"));
                 })
                 .orElse(ResponseEntity.notFound().build());

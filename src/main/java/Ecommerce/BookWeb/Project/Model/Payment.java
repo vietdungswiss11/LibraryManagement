@@ -23,7 +23,7 @@ public class Payment {
     private String paymentMethod; // e.g., CREDIT_CARD, PAYPAL, COD
     
     @Column(name = "amount", nullable = false)
-    private Long amount;
+    private double amount;
     
     @Column(name = "status", nullable = false)
     private String status; // e.g., PENDING, COMPLETED, FAILED, REFUNDED

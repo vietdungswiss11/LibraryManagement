@@ -25,5 +25,5 @@ public class OrderItem {
     private int quantity;
     
     @Column(name = "unit_price", nullable = false)
-    private Long unitPrice;
+    private double unitPrice;
 }

@@ -9,5 +9,5 @@ import java.util.Optional;
 
 @Repository
 public interface ShippingRepository extends JpaRepository<Shipping, Integer> {
-    Optional<Shipping> findByTrackingNumber(String trackingNumber);
+    Optional<Shipping> findByShippingCode(String shippingCode);
 }

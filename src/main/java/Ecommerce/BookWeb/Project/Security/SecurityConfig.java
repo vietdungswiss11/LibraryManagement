@@ -68,6 +68,7 @@ public class SecurityConfig {
                         .requestMatchers("/books/**").permitAll()
                         .requestMatchers("/categories/**").permitAll()
                         .requestMatchers("/users/**").hasAnyAuthority("ROLE_ADMIN","ROLE_USER")
+                        .requestMatchers("/orders/**").hasAnyAuthority("ROLE_ADMIN","ROLE_USER")
                         .anyRequest().authenticated()
                 );
 

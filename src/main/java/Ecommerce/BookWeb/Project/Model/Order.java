@@ -28,7 +28,7 @@ public class Order {
     private LocalDateTime orderDate;
     
     @Column(name = "total_amount", nullable = false)
-    private Long totalAmount;
+    private double totalAmount;
     
     @Column(name = "status")
     private String status; // e.g., PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED

@@ -19,18 +19,15 @@ public class Shipping {
     
     @OneToMany(mappedBy = "shipping")
     private List<Order> orders;
-    
-    @Column(name = "shipping_method", nullable = false)
-    private String shippingMethod; // e.g., STANDARD, EXPRESS, SAME_DAY
-    
-    @Column(name = "tracking_number")
-    private String trackingNumber;
+
+    @Column(name = "shipping_code")
+    private String shippingCode;
     
     @Column(name = "status", nullable = false)
     private String status; // e.g., PENDING, PROCESSING, SHIPPED, DELIVERED
     
     @Column(name = "shipping_cost", nullable = false)
-    private Long shippingCost;
+    private int shippingCost;
     
     @Column(name = "estimated_delivery")
     private LocalDateTime estimatedDelivery;
