@@ -3,6 +3,7 @@ package Ecommerce.BookWeb.Project.Controller.Rest;
 import Ecommerce.BookWeb.Project.DTO.BookDTO;
 import Ecommerce.BookWeb.Project.DTO.BookMapper;
 import Ecommerce.BookWeb.Project.Model.Book;
+import Ecommerce.BookWeb.Project.Model.Category;
 import Ecommerce.BookWeb.Project.Repository.BookRepository;
 import Ecommerce.BookWeb.Project.Repository.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -326,53 +327,12 @@ public class BookController {
         return comparator;
     }
 
-    // CRUD Operations - Giữ nguyên
     @GetMapping("/{id}")
     public ResponseEntity<BookDTO> getBookById(@PathVariable int id) {
         return bookRepository.findById(id)
                 .map(bookMapper::toBookDTO)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
-
-    @PostMapping
-    public BookDTO createBook(@RequestBody Book book) {
-        Book savedBook = bookRepository.save(book);
-        return bookMapper.toBookDTO(savedBook);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<BookDTO> updateBook(@PathVariable int id, @RequestBody Book bookDetails) {
-        return bookRepository.findById(id)
-                .map(book -> {
-                    book.setTitle(bookDetails.getTitle());
-                    book.setAuthor(bookDetails.getAuthor());
-                    book.setOriginalPrice(bookDetails.getOriginalPrice());
-                    book.setDiscountPercent(bookDetails.getDiscountPercent());
-                    book.setDiscountPrice(bookDetails.getDiscountPrice());
-                    book.setDescription(bookDetails.getDescription());
-                    book.setSold(bookDetails.getSold());
-                    book.setPublicationDate(bookDetails.getPublicationDate());
-
-                    if(bookDetails.getImages() != null) {
-                        book.setImages(bookDetails.getImages());
-                    }
-                    if(bookDetails.getIsbn() != null) book.setIsbn(bookDetails.getIsbn());
-
-                    Book updatedBook = bookRepository.save(book);
-                    return ResponseEntity.ok(bookMapper.toBookDTO(updatedBook));
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteBook(@PathVariable int id) {
-        return bookRepository.findById(id)
-                .map(book -> {
-                    bookRepository.delete(book);
-                    return ResponseEntity.ok().build();
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     // Phương thức hỗ trợ tạo phản hồi phân trang
@@ -388,5 +348,36 @@ public class BookController {
         response.put("totalPages", pageBooks.getTotalPages());
 
         return ResponseEntity.ok(response);
+    }
+
+    // lấy related books
+    @GetMapping("/{bookId}/related")
+    public ResponseEntity<List<BookDTO>> getRelatedBooks(
+            @PathVariable int bookId,
+            @RequestParam(defaultValue = "5") int limit) {
+
+        //find the book by id
+        Book book = bookRepository.findById(bookId).orElse(null);
+        if (book == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        //get category Ids of the current book
+        List<Integer> categoryIds = book.getCategories().stream()
+                .map(Category::getId)
+                .collect(Collectors.toList());
+        if(categoryIds.isEmpty()) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+
+        //find other books in the same categories
+        List<Book> relatedBooks = bookRepository.findByCategories_IdIn(categoryIds, bookId, PageRequest.of(0, limit));
+
+        //convert to BookDTO
+        List<BookDTO> relatedBookDTOs = relatedBooks.stream()
+                .map(bookMapper::toBookDTO)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(relatedBookDTOs);
     }
 }

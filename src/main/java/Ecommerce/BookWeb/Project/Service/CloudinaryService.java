@@ -26,7 +26,8 @@ public class CloudinaryService {
             file.transferTo(tempFile);
 
             // Upload lên Cloudinary
-            Map uploadResult = cloudinary.uploader().upload(tempFile, ObjectUtils.emptyMap());
+            Map option = ObjectUtils.asMap("folder", "books");  // Upload vào folder books
+            Map uploadResult = cloudinary.uploader().upload(tempFile, option);
 
             // Lấy URL an toàn (HTTPS)
             return uploadResult.get("secure_url").toString();

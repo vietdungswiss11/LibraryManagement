@@ -3,6 +3,7 @@ package Ecommerce.BookWeb.Project.DTO;
 import Ecommerce.BookWeb.Project.Model.*;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -114,5 +115,54 @@ public class BookMapper {
         dto.setUrl(image.getUrl());
 
         return dto;
+    }
+
+    public Book toEntity(BookDTO dto) {
+        if (dto == null) return null;
+        Book book = new Book();
+        book.setId(dto.getId());
+        book.setTitle(dto.getTitle());
+        book.setDescription(dto.getDescription());
+        book.setAuthor(dto.getAuthor());
+        book.setIsbn(dto.getIsbn());
+        book.setOriginalPrice(dto.getOriginalPrice());
+        book.setDiscountPercent(dto.getDiscountPercent());
+        book.setDiscountPrice(dto.getDiscountPrice());
+        book.setSold(dto.getSold());
+        book.setPublicationDate(dto.getPublicationDate());
+        // Map images
+        if (dto.getImages() != null) {
+            List<Image> images = dto.getImages().stream()
+                    .map(this::toImageEntity)
+                    .collect(Collectors.toList());
+            for (Image img : images) {
+                img.setBook(book);
+            }
+            book.setImages(images);
+        }
+        // Map categories
+        if(dto.getCategories() != null){
+            List<Category> categories = dto.getCategories().stream()
+                    .map(this::toCategoryEntity)
+                    .collect(Collectors.toList());
+            book.setCategories(categories);
+        }
+        return book;
+    }
+
+    public Image toImageEntity(ImageDTO dto) {
+        if (dto == null) return null;
+        Image img = new Image();
+        img.setId(dto.getId());
+        img.setName(dto.getName());
+        img.setUrl(dto.getUrl());
+        return img;
+    }
+
+    public Category toCategoryEntity(CategoryDTO dto) {
+        if (dto == null) return null;
+        Category category = new Category();
+        category.setId(dto.getId());
+        return category;
     }
 }

@@ -63,26 +63,7 @@ public class OrderController {
         return ResponseEntity.ok(orderMapper.toOrderDTO(order));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order orderDetails) {
-        return orderRepository.findById(Math.toIntExact(id))
-                .map(order -> {
-                    order.setStatus(orderDetails.getStatus());
-                    // Update other fields as needed
-                    return ResponseEntity.ok(orderRepository.save(order));
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteOrder(@PathVariable Long id) {
-        return orderRepository.findById(Math.toIntExact(id))
-                .map(order -> {
-                    orderRepository.delete(order);
-                    return ResponseEntity.ok().build();
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
 
 
 }

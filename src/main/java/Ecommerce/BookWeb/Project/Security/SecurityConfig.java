@@ -65,8 +65,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/error").permitAll()
-                        .requestMatchers("/books/**").permitAll()
-                        .requestMatchers("/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/books/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/categories/**").permitAll()
+                        .requestMatchers("/books/**").hasRole("ADMIN")         // POST/PUT/DELETE books chỉ admin
+                        .requestMatchers("/categories/**").hasRole("ADMIN")    // POST/PUT/DELETE categories chỉ admin
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/users/**").hasAnyAuthority("ROLE_ADMIN","ROLE_USER")
                         .requestMatchers("/orders/**").hasAnyAuthority("ROLE_ADMIN","ROLE_USER")
                         .anyRequest().authenticated()

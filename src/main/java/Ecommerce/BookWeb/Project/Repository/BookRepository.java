@@ -77,4 +77,9 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
     List<Book> findBooksWithAllCategories(@Param("categoryIds") List<Integer> categoryIds,
                                         @Param("categoryCount") Long categoryCount);
 
+    //get related books
+    @Query("select distinct b from Book b join b.categories c where c.id in :categoryIds and b.id != :excludedBookId")
+    List<Book> findByCategories_IdIn(@Param("categoryIds")List<Integer> categoryIds,
+                                     @Param("excludedBookId")int bookId,
+                                     Pageable pageable);
 }
