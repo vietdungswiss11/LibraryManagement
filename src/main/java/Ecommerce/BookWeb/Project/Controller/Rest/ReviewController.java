@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -72,17 +74,32 @@ public class ReviewController {
     }
 
     @PostMapping
-    public Review createReview(@RequestBody Review review) {
-        return reviewRepository.save(review);
+    public ResponseEntity<ReviewDTO> createReview(@RequestBody ReviewDTO reviewDTO, Principal principal) {
+        // Lấy user từ principal (token)
+        User user = userRepository.findByEmail(principal.getName()).orElse(null);
+        if(user == null) return ResponseEntity.notFound().build();
+
+        Book book = bookRepository.findById(reviewDTO.getBook().getId()).orElse(null);
+        if(book == null) return ResponseEntity.notFound().build();
+
+        Review review = new Review();
+        review.setRating(reviewDTO.getRating());
+        review.setContent(reviewDTO.getContent());
+        review.setBook(book);
+        review.setUser(user);
+        review.setCreatedAt(LocalDateTime.now());
+
+        return ResponseEntity.ok(reviewMapper.toReviewDTO(reviewRepository.save(review)));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Review> updateReview(@PathVariable int id, @RequestBody Review reviewDetails) {
+    public ResponseEntity<ReviewDTO> updateReview(@PathVariable int id, @RequestBody ReviewDTO reviewDTO) {
         return reviewRepository.findById(id)
                 .map(review -> {
-                    review.setRating(reviewDetails.getRating());
-                    review.setContent(reviewDetails.getContent());
-                    return ResponseEntity.ok(reviewRepository.save(review));
+                    review.setRating(reviewDTO.getRating());
+                    review.setContent(reviewDTO.getContent());
+                    Review savedReview = reviewRepository.save(review);
+                    return ResponseEntity.ok().body(reviewMapper.toReviewDTO(savedReview));
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
