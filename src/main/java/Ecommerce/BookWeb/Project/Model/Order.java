@@ -32,7 +32,10 @@ public class Order {
     
     @Column(name = "status")
     private String status; // e.g., PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
-    
+
+    @Column(name = "notes")
+    private String notes;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> orderItems;
     

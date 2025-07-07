@@ -35,7 +35,10 @@ public class User implements UserDetails {
     //Khi một bản ghi mới được tạo mà không chỉ định giá trị cho createdAt, cơ sở dữ liệu sẽ tự động gán thời gian hiện tại
     @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt;
-    
+
+    @Column
+    private LocalDateTime lastLoginAt;
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = {
             CascadeType.PERSIST, CascadeType.MERGE,
             CascadeType.DETACH, CascadeType.REFRESH

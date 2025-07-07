@@ -51,6 +51,10 @@ public class AuthController {
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             User userPrincipal = (User) authentication.getPrincipal();
+            // Cập nhật lastLoginAt
+            userPrincipal.setLastLoginAt(LocalDateTime.now());
+            userRepository.save(userPrincipal);
+
             String jwt = jwtUtils.generateToken(userPrincipal);
             String refreshToken = jwtUtils.generateRefreshToken(userPrincipal);
 

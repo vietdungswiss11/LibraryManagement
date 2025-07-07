@@ -91,4 +91,25 @@ public class UserMapper {
         dto.setTitle(book.getTitle());
         return dto;
     }
+
+    public UserDTO toUserListDTO(User user) {
+        if (user == null) {
+            return null;
+        }
+
+        UserDTO dto = new UserDTO();
+        dto.setId(user.getId());
+        dto.setName(user.getName());
+        dto.setEmail(user.getEmail());
+        dto.setPhoneNumber(user.getPhoneNumber());
+        dto.setCreatedAt(user.getCreatedAt());
+        dto.setLastLoginAt(user.getLastLoginAt());
+        if(user.getRoles() != null) {
+            dto.setRoles(user.getRoles().stream()
+                    .map(this::toRoleDTO)
+                    .collect(Collectors.toList()));
+        }
+
+        return dto;
+    }
 }

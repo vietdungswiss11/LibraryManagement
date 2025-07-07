@@ -12,6 +12,8 @@ public class UserDTO {
     private String email;
     @Pattern(regexp = "(84|0[3|5|7|8|9])+([0-9]{8})\\b", message = "Số điện thoại không hợp lệ")
     private String phoneNumber;
+    private  LocalDateTime createdAt;
+    private LocalDateTime lastLoginAt;
     private List<RoleDTO> roles;
     private List<AddressDTO> addresses;
     private List<ReviewDTO> reviews;

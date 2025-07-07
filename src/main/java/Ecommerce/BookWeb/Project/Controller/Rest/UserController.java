@@ -15,25 +15,25 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    private final UserRepository UserRepository;
+    private final UserRepository userRepository;
     private UserMapper  userMapper;
 
     @Autowired
-    public UserController(UserRepository UserRepository, UserMapper userMapper) {
-        this.UserRepository = UserRepository;
+    public UserController(UserRepository userRepository, UserMapper userMapper) {
+        this.userRepository = userRepository;
         this.userMapper = userMapper;
     }
 
     @GetMapping
     public List<UserDTO> getAllUsers() {
-        return UserRepository.findAll().stream()
+        return userRepository.findAll().stream()
                 .map(userMapper::toUserDTO)
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable int id) {
-        return UserRepository.findById(id)
+        return userRepository.findById(id)
                 .map(userMapper::toUserDTO)
                 .map(ResponseEntity::ok) // Bước 2: Nếu tìm thấy, trả về 200 OK với User
                 .orElse(ResponseEntity.notFound().build());// Bước 3: Nếu không tìm thấy, trả về 404 Not Found
@@ -41,12 +41,12 @@ public class UserController {
 
     @PostMapping
     public User createUser(@RequestBody User User) {
-        return UserRepository.save(User);
+        return userRepository.save(User);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<User> updateUser(@PathVariable int id, @RequestBody User UserDetails) {
-        return UserRepository.findById(id)
+        return userRepository.findById(id)
                 .map(User -> {
                     // Cập nhật các trường cơ bản
                     User.setName(UserDetails.getName());
@@ -64,7 +64,7 @@ public class UserController {
                     }
                     
                     // Lưu và trả về User đã cập nhật
-                    User updatedUser = UserRepository.save(User);
+                    User updatedUser = userRepository.save(User);
                     return ResponseEntity.ok(updatedUser);
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());

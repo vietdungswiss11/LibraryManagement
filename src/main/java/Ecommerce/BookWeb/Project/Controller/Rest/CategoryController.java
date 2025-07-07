@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/categories")
@@ -25,6 +26,14 @@ public class CategoryController {
     @GetMapping
     public List<CategoryDTO> getAllCategories() {
         return categoryRepository.findAll().stream()
+                .map(categoryMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    // Tìm kiếm danh mục theo từ khóa
+    @GetMapping("/search")
+    public List<CategoryDTO> searchCategories(@RequestParam String keyword) {
+        return categoryRepository.searchByName(keyword).stream()
                 .map(categoryMapper::toDTO)
                 .collect(Collectors.toList());
     }

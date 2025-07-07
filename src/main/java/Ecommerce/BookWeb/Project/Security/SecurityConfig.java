@@ -70,7 +70,10 @@ public class SecurityConfig {
                         .requestMatchers("/books/**").hasRole("ADMIN")         // POST/PUT/DELETE books chỉ admin
                         .requestMatchers("/categories/**").hasRole("ADMIN")    // POST/PUT/DELETE categories chỉ admin
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/users/**").hasAnyAuthority("ROLE_ADMIN","ROLE_USER")
+                        .requestMatchers(HttpMethod.GET, "/users/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_USER")
+                        .requestMatchers(HttpMethod.POST, "/users/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_USER")
+                        .requestMatchers(HttpMethod.PUT, "/users/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_USER")
+                        .requestMatchers(HttpMethod.DELETE, "/users/**").hasRole("ADMIN")
                         .requestMatchers("/orders/**").hasAnyAuthority("ROLE_ADMIN","ROLE_USER")
                         .anyRequest().authenticated()
                 );

@@ -1,9 +1,6 @@
 package Ecommerce.BookWeb.Project.Controller.Rest;
 
-import Ecommerce.BookWeb.Project.DTO.BookDTO;
-import Ecommerce.BookWeb.Project.DTO.BookMapper;
-import Ecommerce.BookWeb.Project.DTO.CategoryDTO;
-import Ecommerce.BookWeb.Project.DTO.CategoryMapper;
+import Ecommerce.BookWeb.Project.DTO.*;
 import Ecommerce.BookWeb.Project.Model.Book;
 import Ecommerce.BookWeb.Project.Model.Category;
 import Ecommerce.BookWeb.Project.Model.Image;
@@ -13,10 +10,17 @@ import Ecommerce.BookWeb.Project.Repository.CategoryRepository;
 import Ecommerce.BookWeb.Project.Repository.OrderRepository;
 import Ecommerce.BookWeb.Project.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -27,16 +31,21 @@ public class AdminController {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final BookMapper bookMapper;
+    private final UserMapper userMapper;
+    private final OrderMapper orderMapper;
+
     @Autowired
     public AdminController(BookRepository bookRepository,
                            CategoryRepository categoryRepository,
                            OrderRepository orderRepository, UserRepository userRepository,
-                           BookMapper bookMapper) {
+                           BookMapper bookMapper, UserMapper userMapper, OrderMapper orderMapper) {
         this.bookMapper = bookMapper;
         this.bookRepository = bookRepository;
         this.categoryRepository = categoryRepository;
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
+        this.userMapper = userMapper;
+        this.orderMapper = orderMapper;
     }
 
     // CUD Book
@@ -70,6 +79,12 @@ public class AdminController {
                             img.setBook(book);
                         }
                         book.setImages(images);
+                    }
+                    if(bookDTO.getCategories()!= null){
+                        List<Category> categorires = bookDTO.getCategories().stream()
+                                .map(bookMapper::toCategoryEntity)
+                                .collect(Collectors.toList());
+                        book.setCategories(categorires);
                     }
                     if (bookDTO.getIsbn() != null) book.setIsbn(bookDTO.getIsbn());
 
@@ -124,13 +139,61 @@ public class AdminController {
     }
 
     //UD Order
-    @PutMapping("/orders/{id}")
-    public ResponseEntity<Order> updateOrder(@PathVariable int id, @RequestBody Order orderDetails) {
+    @GetMapping("/orders")
+    public ResponseEntity<Map<String, Object>> getAllOrders(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "orderDate") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+
+        try {
+            // Tạo đối tượng phân trang
+            Pageable paging = PageRequest.of(
+                    page,
+                    size,
+                    sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending()
+            );
+
+            // Lấy danh sách đơn hàng có phân trang
+            Page<Order> pageOrders = orderRepository.findAll(paging);
+
+            // Chuyển đổi sang DTO
+            List<OrderDTO> orderDTOs = pageOrders.getContent().stream()
+                    .map(orderMapper::toOrderDTO)
+                    .collect(Collectors.toList());
+
+            // Tạo response
+            Map<String, Object> response = new HashMap<>();
+            response.put("orders", orderDTOs);
+            response.put("currentPage", pageOrders.getNumber());
+            response.put("totalItems", pageOrders.getTotalElements());
+            response.put("totalPages", pageOrders.getTotalPages());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Lỗi khi lấy danh sách đơn hàng: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+    @PutMapping("/orders/{id}/status")
+    public ResponseEntity<OrderDTO> updateStatusOrder(@PathVariable int id, @RequestBody OrderStatusUpdateRequest req) {
         return orderRepository.findById(id)
                 .map(order -> {
-                    order.setStatus(orderDetails.getStatus());
-                    // Update other fields as needed
-                    return ResponseEntity.ok(orderRepository.save(order));
+                    if(order.getPayment()!= null && req.getPaymentStatus() != null){
+                        order.getPayment().setStatus(req.getPaymentStatus());
+                    }
+                    if(order.getShipping()!=null && req.getShippingStatus() != null) {
+                        order.getShipping().setStatus(req.getShippingStatus());
+
+                    }
+                    if(req.getOrderStatus() != null){
+                        order.setStatus(req.getOrderStatus());
+                    }
+                    if(req.getNotes() !=null) order.setNotes(req.getNotes());
+                    Order updateOrder = orderRepository.save(order);
+                    return ResponseEntity.ok(orderMapper.toOrderDTO(updateOrder));
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -145,8 +208,16 @@ public class AdminController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    //get only info User
+    @GetMapping("/users")
+    public List<UserDTO> getListUser(){
+        return userRepository.findAll().stream()
+                .map(userMapper::toUserListDTO)
+                .collect(Collectors.toList());
+    }
+
     //delete User
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/users/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable int id) {
         return userRepository.findById(id)
                 .map(user -> {

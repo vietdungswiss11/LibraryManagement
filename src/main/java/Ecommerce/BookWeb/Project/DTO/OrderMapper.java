@@ -85,6 +85,7 @@ public class OrderMapper {
         dto.setId(book.getId());
         dto.setTitle(book.getTitle());
         dto.setAuthor(book.getAuthor());
+        dto.setImageUrl(book.getImages().get(0).getUrl());
         return dto;
     }
 

@@ -10,10 +10,17 @@ import Ecommerce.BookWeb.Project.Repository.OrderRepository;
 import Ecommerce.BookWeb.Project.Repository.UserRepository;
 import Ecommerce.BookWeb.Project.Service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -31,23 +38,54 @@ public class OrderController {
     @Autowired
     private UserRepository userRepository;
 
-    @GetMapping
-    public List<Order> getAllOrders() {
-        return orderRepository.findAll();
+    // Lấy tất cả đơn hàng của một user có phân trang
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<Map<String, Object>> getOrdersByUserId(
+            @PathVariable int userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "orderDate") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+
+        try {
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("message", "Không tìm thấy người dùng với ID: " + userId);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            }
+
+            // Tạo đối tượng phân trang
+            Pageable paging = PageRequest.of(
+                    page,
+                    size,
+                    sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending()
+            );
+
+            // Lấy danh sách đơn hàng của user có phân trang
+            Page<Order> pageOrders = orderRepository.findByUser(user, paging);
+
+            // Chuyển đổi sang DTO
+            List<OrderDTO> orderDTOs = pageOrders.getContent().stream()
+                    .map(orderMapper::toOrderDTO)
+                    .collect(Collectors.toList());
+
+            // Tạo response
+            Map<String, Object> response = new HashMap<>();
+            response.put("orders", orderDTOs);
+            response.put("currentPage", pageOrders.getNumber());
+            response.put("totalItems", pageOrders.getTotalElements());
+            response.put("totalPages", pageOrders.getTotalPages());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Lỗi khi lấy danh sách đơn hàng: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
     }
 
-    // Lấy tất cả đơn hàng của một user
-    @GetMapping("/user/{userId}")
-    public List<OrderDTO> getOrdersByUserId(@PathVariable int userId) {
-        User user = userRepository.findById(userId).orElse(null);
-        if (user == null) {
-            return null;
-        }
-        List<OrderDTO> orderDTOs = orderRepository.findByUser(user).stream()
-                .map(order -> orderMapper.toOrderDTO(order))
-                .collect(Collectors.toList());
-        return orderDTOs;
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<OrderDTO> getOrderById(@PathVariable int id) {

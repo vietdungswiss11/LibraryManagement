@@ -163,6 +163,7 @@ public class BookMapper {
         if (dto == null) return null;
         Category category = new Category();
         category.setId(dto.getId());
+        category.setName(dto.getName());
         return category;
     }
 }
