@@ -47,39 +47,39 @@ public class CategoryController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // Tạo mới danh mục
-    @PostMapping
-    public CategoryDTO createCategory(@RequestBody CategoryDTO categoryDTO) {
-        Category category = categoryMapper.toEntity(categoryDTO);
-        Category savedCategory = categoryRepository.save(category);
-        return categoryMapper.toDTO(savedCategory);
-    }
-
-    // Cập nhật danh mục
-    @PutMapping("/{id}")
-    public ResponseEntity<CategoryDTO> updateCategory(
-            @PathVariable int id,
-            @RequestBody CategoryDTO categoryDTO) {
-
-        return categoryRepository.findById(id)
-                .map(existingCategory -> {
-                    existingCategory.setName(categoryDTO.getName());
-                    Category updatedCategory = categoryRepository.save(existingCategory);
-                    return ResponseEntity.ok(categoryMapper.toDTO(updatedCategory));
-                })
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    // Xóa danh mục
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCategory(@PathVariable int id) {
-        return categoryRepository.findById(id)
-                .map(category -> {
-                    categoryRepository.delete(category);
-                    return ResponseEntity.ok().build();
-                })
-                .orElse(ResponseEntity.notFound().build());
-    }
+//    // Tạo mới danh mục
+//    @PostMapping
+//    public CategoryDTO createCategory(@RequestBody CategoryDTO categoryDTO) {
+//        Category category = categoryMapper.toEntity(categoryDTO);
+//        Category savedCategory = categoryRepository.save(category);
+//        return categoryMapper.toDTO(savedCategory);
+//    }
+//
+//    // Cập nhật danh mục
+//    @PutMapping("/{id}")
+//    public ResponseEntity<CategoryDTO> updateCategory(
+//            @PathVariable int id,
+//            @RequestBody CategoryDTO categoryDTO) {
+//
+//        return categoryRepository.findById(id)
+//                .map(existingCategory -> {
+//                    existingCategory.setName(categoryDTO.getName());
+//                    Category updatedCategory = categoryRepository.save(existingCategory);
+//                    return ResponseEntity.ok(categoryMapper.toDTO(updatedCategory));
+//                })
+//                .orElse(ResponseEntity.notFound().build());
+//    }
+//
+//    // Xóa danh mục
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<?> deleteCategory(@PathVariable int id) {
+//        return categoryRepository.findById(id)
+//                .map(category -> {
+//                    categoryRepository.delete(category);
+//                    return ResponseEntity.ok().build();
+//                })
+//                .orElse(ResponseEntity.notFound().build());
+//    }
 
 
 }
