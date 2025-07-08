@@ -93,7 +93,6 @@ yarn-error.log*
 .env
 
 # Application properties with sensitive data
-**/application*.properties
 **/application*.yml
 **/application*.yaml
 
