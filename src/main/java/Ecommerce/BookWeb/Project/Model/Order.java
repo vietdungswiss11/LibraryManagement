@@ -15,7 +15,11 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    
+
+    //order String
+    @Column(name = "order_number", unique = true)
+    private String orderNumber;
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

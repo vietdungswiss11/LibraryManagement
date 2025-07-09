@@ -315,6 +315,9 @@ public class BookController {
                     return rating != null ? rating : 0.0;
                 });
                 break;
+            case "sold":
+                comparator = Comparator.comparing(Book::getSold);
+                break;
             default:
                 comparator = Comparator.comparing(Book::getId);
                 break;

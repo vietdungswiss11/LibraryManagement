@@ -21,4 +21,5 @@ public class PaymentInfoDTO {
     private String bankCode;               // Mã ngân hàng (nếu có)
     private String bankTranNo;             // Mã giao dịch ngân hàng
     private String bankName;               // Tên ngân hàng (nếu có)
+
 }

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Integer> {
@@ -15,4 +16,5 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     Page<Order> findByUser(User user, Pageable pageable);
     Long countByUser(User user);
     List<Order> findByUser(User user);
+    Optional<Order> findByOrderNumber(String orderNumber);
 }

@@ -7,9 +7,12 @@ import Ecommerce.BookWeb.Project.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -39,6 +42,9 @@ public class OrderService {
         // 2. Tạo thanh toán (Payment)
         Payment payment = new Payment();
         payment.setPaymentMethod(dto.getPaymentMethod());
+        if(payment.getPaymentMethod().equals("vnpay")){
+
+        }
         payment.setStatus("PENDING");
         payment.setAmount(0); // tạm thời set 0, sẽ cập nhật sau
         payment.setTransactionId(null);
@@ -58,6 +64,7 @@ public class OrderService {
 
         // 4. Tạo Order và OrderItem
         Order order = new Order();
+        order.setOrderNumber(generateOrderNumber());
         order.setUser(user);
         order.setAddress(address);
         order.setOrderDate(LocalDateTime.now());
@@ -94,6 +101,14 @@ public class OrderService {
 
         // 5. Lưu Order (cùng với orderItems cascade)
         return orderRepository.save(order);
+    }
+
+    //generate order number random
+    public String generateOrderNumber() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMdd");
+        String datePart = LocalDate.now().format(formatter);
+        String randomPart = String.format("%03d", new Random().nextInt(1000));
+        return "ORD" + datePart + "-" + randomPart;
     }
 }
 

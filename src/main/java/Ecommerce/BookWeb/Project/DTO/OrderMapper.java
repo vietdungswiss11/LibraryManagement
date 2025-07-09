@@ -17,7 +17,7 @@ public class OrderMapper {
         
         OrderDTO dto = new OrderDTO();
         dto.setId(order.getId());
-        
+        dto.setOrderNumber(order.getOrderNumber());
         if (order.getUser() != null) {
             dto.setUserDTO(toUserDTO(order.getUser()));
         }
@@ -125,6 +125,9 @@ public class OrderMapper {
         PaymentInfoDTO dto = new PaymentInfoDTO();
         dto.setId(payment.getId());
         dto.setPaymentMethod(payment.getPaymentMethod());
+        if(dto.getPaymentMethod().equals("VNPAY")) {
+
+        }
         dto.setStatus(payment.getStatus());
         dto.setAmount(payment.getAmount());
         dto.setPaymentDate(payment.getPaymentDate());

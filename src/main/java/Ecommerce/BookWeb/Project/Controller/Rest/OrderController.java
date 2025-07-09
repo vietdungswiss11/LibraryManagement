@@ -9,6 +9,8 @@ import Ecommerce.BookWeb.Project.Model.User;
 import Ecommerce.BookWeb.Project.Repository.OrderRepository;
 import Ecommerce.BookWeb.Project.Repository.UserRepository;
 import Ecommerce.BookWeb.Project.Service.OrderService;
+import Ecommerce.BookWeb.Project.Service.VNPAYService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -37,6 +39,9 @@ public class OrderController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private VNPAYService vnPayService;
 
     // Lấy tất cả đơn hàng của một user có phân trang
     @GetMapping("/user/{userId}")
@@ -95,13 +100,45 @@ public class OrderController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public ResponseEntity<OrderDTO> createOrder(@RequestBody CreateOrderRequestDTO createOrderRequest) {
-        Order order = orderService.createOrderFromDTO(createOrderRequest);
-        return ResponseEntity.ok(orderMapper.toOrderDTO(order));
+    @GetMapping("/by-number/{orderNumber}")
+    public ResponseEntity<OrderDTO> getOrderByOrderNumber(@PathVariable String orderNumber) {
+        return orderRepository.findByOrderNumber(orderNumber)
+                .map(orderMapper::toOrderDTO)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
+// tạo order cod
+//    @PostMapping
+//    public ResponseEntity<OrderDTO> createOrder(@RequestBody CreateOrderRequestDTO createOrderRequest) {
+//        Order order = orderService.createOrderFromDTO(createOrderRequest);
+//        return ResponseEntity.ok(orderMapper.toOrderDTO(order));
+//    }
 
+    // tạo order nâng cấp có VNPAY
+    @PostMapping
+    public ResponseEntity<?> createOrder(@RequestBody CreateOrderRequestDTO createOrderRequest, HttpServletRequest request) {
+        Order order = orderService.createOrderFromDTO(createOrderRequest);
 
+        // Nếu là VNPAY thì tạo link thanh toán
+        String paymentUrl = null;
+        if ("vnpay".equalsIgnoreCase(order.getPayment().getPaymentMethod())) {
+            // orderInfo là mô tả đơn hàng
+            String orderInfo = "Thanh toan don hang " + order.getOrderNumber();
+            paymentUrl = vnPayService.createOrder(request, order.getTotalAmount(), orderInfo, order.getOrderNumber());
+        }
 
+        // Map sang DTO như cũ
+        OrderDTO dto = orderMapper.toOrderDTO(order);
+        // Thêm trường paymentUrl vào DTO (nếu là VNPAY)
+        if (paymentUrl != null) {
+            // Nếu OrderDTO chưa có trường này, có thể dùng Map hoặc custom DTO
+            Map<String, Object> result = new HashMap<>();
+            result.put("order", dto);
+            result.put("paymentUrl", paymentUrl);
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.ok(dto);
+        }
+    }
 
 }
