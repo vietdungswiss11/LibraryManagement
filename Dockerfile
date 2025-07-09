@@ -1,14 +1,26 @@
-# Stage 1: Build app với Maven và JDK 21
+# Stage 1: Build Maven project with cache
 FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
-COPY . .
-RUN mvn clean package -DskipTests
-# Debug - in ra nội dung thư mục target
-RUN echo "=== TARGET DIRECTORY ===" && ls -l /app/target
 
-# Stage 2: Run
+# Chỉ copy pom.xml trước để cache dependency
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+
+# Sau đó copy toàn bộ source code
+COPY . .
+
+# Build project, skip test cho nhanh
+RUN mvn clean package -DskipTests
+
+# Kiểm tra file jar tồn tại
+RUN echo "=== JAR output ===" && ls -l /app/target
+
+# Stage 2: Run app
 FROM eclipse-temurin:21-jdk
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+
+# Copy đúng tên jar
+COPY --from=build /app/target/Project-0.0.1-SNAPSHOT.jar app.jar
+
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
