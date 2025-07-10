@@ -6,6 +6,10 @@ import Ecommerce.BookWeb.Project.Model.Role;
 import Ecommerce.BookWeb.Project.Model.User;
 import Ecommerce.BookWeb.Project.Repository.RoleRepository;
 import Ecommerce.BookWeb.Project.Repository.UserRepository;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -187,5 +191,74 @@ public class AuthController {
         userRepository.save(user);
         return ResponseEntity.ok(new ApiResponse(true, "Đã lưu password mới thành công!"));
 
+    }
+
+    //google login
+    @PostMapping("/google")
+    public ResponseEntity<?> googleLogin(@RequestBody Map<String, String> body) {
+        String idTokenString = body.get("idToken");
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new JacksonFactory())
+                .setAudience(Collections.singletonList("93263629507-684ul8eu0bctqj7qsufh9oeipi4n67gk.apps.googleusercontent.com")) // Thay bằng clientId google console
+                .build();
+
+        GoogleIdToken idToken;
+        try {
+            idToken = verifier.verify(idTokenString);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, "Invalid Google ID token!"));
+        }
+
+        if (idToken != null) {
+            GoogleIdToken.Payload payload = idToken.getPayload();
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+
+            // Kiểm tra user đã tồn tại chưa
+            Optional<User> userOpt = userRepository.findByEmail(email);
+            User user;
+            if (userOpt.isPresent()) {
+                user = userOpt.get();
+            } else {
+                // Tạo user mới
+                user = new User();
+                user.setEmail(email);
+                user.setName(name != null ? name : "Google User");
+                user.setPhoneNumber(generateRandomPhoneNumber());
+                user.setCreatedAt(LocalDateTime.now());
+                // Set default role
+                List<Role> roles = new ArrayList<>();
+                Role userRole = roleRepository.findByName("ROLE_USER")
+                        .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                roles.add(userRole);
+                user.setRoles(roles);
+                // Không cần password
+                user.setPassword(encoder.encode(UUID.randomUUID().toString()));
+                userRepository.save(user);
+            }
+
+            // Tạo JWT
+            String jwt = jwtUtils.generateToken(user);
+            String refreshToken = jwtUtils.generateRefreshToken(user);
+            List<String> roles = user.getAuthorities().stream()
+                    .map(item -> item.getAuthority())
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(new JwtResponse(jwt, refreshToken,
+                    user.getId(),
+                    user.getName(),
+                    user.getEmail(),
+                    roles));
+        } else {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, "Invalid Google ID token!"));
+        }
+    }
+
+    private String generateRandomPhoneNumber() {
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder("09");
+        for (int i = 0; i < 8; i++) {
+            sb.append(random.nextInt(10));
+        }
+        return sb.toString();
     }
 }
