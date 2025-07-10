@@ -302,7 +302,7 @@ public class BookController {
             case "author":
                 comparator = Comparator.comparing(Book::getAuthor, String.CASE_INSENSITIVE_ORDER);
                 break;
-            case "price":
+            case "discountprice":
                 comparator = Comparator.comparing(Book::getDiscountPrice);
                 break;
             case "publicationdate":

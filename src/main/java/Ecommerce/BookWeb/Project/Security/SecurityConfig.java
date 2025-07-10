@@ -94,6 +94,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         //tách chuoi nay de cho phep nhung domain nao truy cap
         configuration.setAllowedOriginPatterns(Arrays.asList(allowedOrigins.split(",")));
+//        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

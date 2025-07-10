@@ -69,13 +69,13 @@ public class Book {
     )
     private List<Category> categories;
 
-    public double getDiscountPrice(){
-        if(discountPercent > 0){
-            discountPrice =  originalPrice * (1 - discountPercent);
-            return discountPrice;
-        }
-        return originalPrice;
-    }
+//    public double getDiscountPrice(){
+//        if(discountPercent > 0){
+//            discountPrice =  originalPrice * (1 - discountPercent);
+//            return discountPrice;
+//        }
+//        return originalPrice;
+//    }
 
 
 }
